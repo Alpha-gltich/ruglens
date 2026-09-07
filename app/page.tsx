@@ -1,3 +1,5 @@
+import WatchlistButton from "./WatchlistButton";
+
 const TOKEN_NAMES = [
   "BlackRock BUIDL",
   "Ondo Yield Assets",
@@ -41,6 +43,7 @@ export default async function Home() {
           <li key={token.name} style={{ marginBottom: "1rem" }}>
             <strong>{token.name}</strong> — TVL: $
             {token.tvl.toLocaleString()}
+            <WatchlistButton tokenName={token.name} />
             <br />
             Tags: {token.tags?.join(", ") ?? "none"}
           </li>
