@@ -35,8 +35,16 @@ export default function WatchlistButton({ tokenName }: { tokenName: string }) {
   }
 
   return (
-    <button onClick={toggleWatchlist} style={{ marginLeft: "0.5rem" }}>
-      {isWatched ? "★ Watching" : "☆ Watch"}
+    <button
+      onClick={toggleWatchlist}
+      aria-label={isWatched ? "Remove from watchlist" : "Add to watchlist"}
+      className={`text-xl leading-none transition-colors ${
+        isWatched
+          ? "text-yellow-400 hover:text-yellow-300"
+          : "text-white/30 hover:text-white/60"
+      }`}
+    >
+      {isWatched ? "★" : "☆"}
     </button>
   );
 }
