@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import WatchlistButton from "./WatchlistButton";
+import { getSlugByName } from "./tokens";
 
 type Protocol = {
   name: string;
@@ -67,37 +69,50 @@ export default function Dashboard({ tokens }: { tokens: Protocol[] }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredTokens.map((token) => (
-          <div
-            key={token.name}
-            className="bg-[#151922] border border-white/10 rounded-xl p-5 flex flex-col gap-3"
-          >
-            <div className="flex items-start justify-between">
-              <h2 className="text-base font-medium text-white">
-                {token.name}
-              </h2>
-              <WatchlistButton tokenName={token.name} />
-            </div>
+        {filteredTokens.map((token) => {
+          const slug = getSlugByName(token.name);
 
-            <div>
-              <p className="text-3xl font-semibold text-white">
-                {formatTvl(token.tvl)}
-              </p>
-              <p className="text-xs text-white/50 mt-1">TVL</p>
-            </div>
+          return (
+            <div
+              key={token.name}
+              className="bg-[#151922] border border-white/10 rounded-xl p-5 flex flex-col gap-3"
+            >
+              <div className="flex items-start justify-between">
+                {slug ? (
+                  <Link
+                    href={`/token/${slug}`}
+                    className="text-base font-medium text-white hover:text-blue-400 transition-colors"
+                  >
+                    {token.name}
+                  </Link>
+                ) : (
+                  <h2 className="text-base font-medium text-white">
+                    {token.name}
+                  </h2>
+                )}
+                <WatchlistButton tokenName={token.name} />
+              </div>
 
-            <div className="flex flex-wrap gap-2 mt-1">
-              {(token.tags ?? []).map((tag) => (
-                <span
-                  key={tag}
-                  className="text-[10px] uppercase tracking-wide px-2 py-1 rounded-full border border-blue-500/40 text-blue-400"
-                >
-                  {tag}
-                </span>
-              ))}
+              <div>
+                <p className="text-3xl font-semibold text-white">
+                  {formatTvl(token.tvl)}
+                </p>
+                <p className="text-xs text-white/50 mt-1">TVL</p>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mt-1">
+                {(token.tags ?? []).map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-[10px] uppercase tracking-wide px-2 py-1 rounded-full border border-blue-500/40 text-blue-400"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {filteredTokens.length === 0 && (
