@@ -10,10 +10,13 @@ type ProtocolDetail = {
 };
 
 async function getTokenDetail(slug: string): Promise<ProtocolDetail | null> {
-
   const res = await fetch(`https://api.llama.fi/protocol/${slug}`, {
     cache: "no-store",
   });
+
+  if (res.status === 429) {
+    throw new Error("Rate limited by DefiLlama. Please try again shortly.");
+  }
 
   if (!res.ok) return null;
 
