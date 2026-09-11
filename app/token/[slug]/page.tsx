@@ -10,6 +10,7 @@ type ProtocolDetail = {
 };
 
 async function getTokenDetail(slug: string): Promise<ProtocolDetail | null> {
+
   const res = await fetch(`https://api.llama.fi/protocol/${slug}`, {
     cache: "no-store",
   });
