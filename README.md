@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RugLens
 
-## Getting Started
+A dashboard tracking Total Value Locked (TVL) for tokenized real-world asset (RWA) protocols — treasury bills, private credit, real estate, commodities, and similar on-chain instruments — using live data from [DefiLlama](https://defillama.com).
 
-First, run the development server:
+**Live:** [ruglens-six.vercel.app](https://ruglens-six.vercel.app)
+
+## Features
+
+- Live TVL tracking for 8 locked RWA tokens, filterable by category (Treasury Bills, Private Credit, Real Estate, Commodities, Money Market Funds, Other Fixed Income)
+- Per-token detail pages with chain-level TVL breakdown
+- Local watchlist (star any token)
+- Error boundary and loading states for the live data fetch
+- Graceful handling of DefiLlama's rate limiting (HTTP 429)
+
+## Known limitation: partial TVL data
+
+DefiLlama's `/protocols` and `/protocol/{slug}` endpoints currently return `null` TVL for most tokens in this locked list — only RealT Tokens has populated data as of this writing. This was confirmed by directly probing both endpoints; it is **not** a bug in this app's code.
+
+DefiLlama does track market cap and TVL for these assets on their [RWA dashboard](https://defillama.com/rwa), but that data is served through an internal API (`defillama.com/api/public/rwa/*`) that is protected by Cloudflare and returns a bot-challenge page to non-browser requests, so it isn't usable here without a different, documented data source.
+
+The app reflects this honestly rather than hiding it: tokens with no available TVL show "TVL unavailable (DefiLlama)" instead of a fabricated or stale number, and the Total TVL figure labels itself "(partial)" with a count of how many tokens are missing data.
+
+## Tech stack
+
+- [Next.js 16](https://nextjs.org) (App Router, Turbopack)
+- TypeScript
+- Tailwind CSS
+- Deployed on [Vercel](https://vercel.com)
+
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To verify a production build locally before deploying:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build && npm start
+```
 
-## Learn More
+## Deploy
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Pushes to `main` auto-deploy to Vercel.
