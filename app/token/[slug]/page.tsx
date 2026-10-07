@@ -23,8 +23,12 @@ async function getTokenDetail(slug: string): Promise<ProtocolDetail | null> {
   return res.json();
 }
 
+function isTvlAvailable(tvl: number | null | undefined): tvl is number {
+  return typeof tvl === "number" && Number.isFinite(tvl);
+}
+
 function formatTvl(tvl: number | null | undefined): string {
-  if (typeof tvl !== "number" || !Number.isFinite(tvl)) return "N/A";
+  if (!isTvlAvailable(tvl)) return "N/A";
   if (tvl >= 1_000_000_000) return `$${(tvl / 1_000_000_000).toFixed(2)}B`;
   if (tvl >= 1_000_000) return `$${(tvl / 1_000_000).toFixed(2)}M`;
   return `$${tvl.toLocaleString()}`;
@@ -60,6 +64,8 @@ export default async function TokenDetailPage({
       ? chainEntries.reduce((sum, [, value]) => sum + value, 0)
       : null;
 
+  const totalAvailable = isTvlAvailable(totalTvl);
+
   return (
     <div className="min-h-screen bg-[#0B0E14] text-white">
       <div className="max-w-3xl mx-auto px-6 py-10">
@@ -78,7 +84,9 @@ export default async function TokenDetailPage({
 
         <div className="mt-6">
           <p className="text-4xl font-semibold">{formatTvl(totalTvl)}</p>
-          <p className="text-xs text-white/50 mt-1">Total TVL</p>
+          <p className="text-xs text-white/50 mt-1">
+            {totalAvailable ? "Total TVL" : "Total TVL unavailable (DefiLlama)"}
+          </p>
         </div>
 
         <div className="flex flex-wrap gap-2 mt-4">
@@ -96,6 +104,11 @@ export default async function TokenDetailPage({
           Chain Distribution
         </h2>
         <div className="flex flex-col gap-2">
+          {chainEntries.length === 0 && (
+            <p className="text-sm text-white/40">
+              No chain-level data available from DefiLlama for this token.
+            </p>
+          )}
           {[...chainEntries]
             .sort((a, b) => b[1] - a[1])
             .map(([chain, tvl]) => (

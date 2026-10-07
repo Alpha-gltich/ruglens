@@ -22,8 +22,12 @@ const FILTERS = [
   "Other Fixed Income",
 ];
 
+function isTvlAvailable(tvl: number | null | undefined): tvl is number {
+  return typeof tvl === "number" && Number.isFinite(tvl);
+}
+
 function formatTvl(tvl: number | null | undefined): string {
-  if (typeof tvl !== "number" || !Number.isFinite(tvl)) return "N/A";
+  if (!isTvlAvailable(tvl)) return "N/A";
   if (tvl >= 1_000_000_000) return `$${(tvl / 1_000_000_000).toFixed(2)}B`;
   if (tvl >= 1_000_000) return `$${(tvl / 1_000_000).toFixed(2)}M`;
   return `$${tvl.toLocaleString()}`;
@@ -40,12 +44,14 @@ export default function Dashboard({ tokens }: { tokens: Protocol[] }) {
   const totalTvl = useMemo(
     () =>
       filteredTokens.reduce(
-        (sum, token) =>
-          typeof token.tvl === "number" && Number.isFinite(token.tvl)
-            ? sum + token.tvl
-            : sum,
+        (sum, token) => (isTvlAvailable(token.tvl) ? sum + token.tvl : sum),
         0
       ),
+    [filteredTokens]
+  );
+
+  const missingCount = useMemo(
+    () => filteredTokens.filter((token) => !isTvlAvailable(token.tvl)).length,
     [filteredTokens]
   );
 
@@ -69,16 +75,24 @@ export default function Dashboard({ tokens }: { tokens: Protocol[] }) {
         </div>
 
         <div className="text-right">
-          <p className="text-xs text-white/50">Total TVL</p>
+          <p className="text-xs text-white/50">
+            Total TVL{missingCount > 0 ? " (partial)" : ""}
+          </p>
           <p className="text-lg font-semibold text-white">
             {formatTvl(totalTvl)}
           </p>
+          {missingCount > 0 && (
+            <p className="text-[10px] text-white/30 mt-0.5">
+              {missingCount} token{missingCount > 1 ? "s" : ""} unavailable
+            </p>
+          )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredTokens.map((token) => {
           const slug = getSlugByName(token.name);
+          const available = isTvlAvailable(token.tvl);
 
           return (
             <div
@@ -105,7 +119,9 @@ export default function Dashboard({ tokens }: { tokens: Protocol[] }) {
                 <p className="text-3xl font-semibold text-white">
                   {formatTvl(token.tvl)}
                 </p>
-                <p className="text-xs text-white/50 mt-1">TVL</p>
+                <p className="text-xs text-white/50 mt-1">
+                  {available ? "TVL" : "TVL unavailable (DefiLlama)"}
+                </p>
               </div>
 
               <div className="flex flex-wrap gap-2 mt-1">
