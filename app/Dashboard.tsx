@@ -7,7 +7,7 @@ import { getSlugByName } from "./tokens";
 
 type Protocol = {
   name: string;
-  tvl: number;
+  tvl: number | null;
   tags?: string[];
   chains?: string[];
 };
@@ -22,7 +22,8 @@ const FILTERS = [
   "Other Fixed Income",
 ];
 
-function formatTvl(tvl: number): string {
+function formatTvl(tvl: number | null | undefined): string {
+  if (typeof tvl !== "number" || !Number.isFinite(tvl)) return "N/A";
   if (tvl >= 1_000_000_000) return `$${(tvl / 1_000_000_000).toFixed(2)}B`;
   if (tvl >= 1_000_000) return `$${(tvl / 1_000_000).toFixed(2)}M`;
   return `$${tvl.toLocaleString()}`;
@@ -37,7 +38,14 @@ export default function Dashboard({ tokens }: { tokens: Protocol[] }) {
   }, [tokens, activeFilter]);
 
   const totalTvl = useMemo(
-    () => filteredTokens.reduce((sum, token) => sum + token.tvl, 0),
+    () =>
+      filteredTokens.reduce(
+        (sum, token) =>
+          typeof token.tvl === "number" && Number.isFinite(token.tvl)
+            ? sum + token.tvl
+            : sum,
+        0
+      ),
     [filteredTokens]
   );
 

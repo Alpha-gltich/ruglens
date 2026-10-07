@@ -6,7 +6,7 @@ type ProtocolDetail = {
   name: string;
   description?: string;
   tags?: string[];
-  currentChainTvls?: Record<string, number>;
+  currentChainTvls?: Record<string, number | null>;
 };
 
 async function getTokenDetail(slug: string): Promise<ProtocolDetail | null> {
@@ -23,7 +23,8 @@ async function getTokenDetail(slug: string): Promise<ProtocolDetail | null> {
   return res.json();
 }
 
-function formatTvl(tvl: number): string {
+function formatTvl(tvl: number | null | undefined): string {
+  if (typeof tvl !== "number" || !Number.isFinite(tvl)) return "N/A";
   if (tvl >= 1_000_000_000) return `$${(tvl / 1_000_000_000).toFixed(2)}B`;
   if (tvl >= 1_000_000) return `$${(tvl / 1_000_000).toFixed(2)}M`;
   return `$${tvl.toLocaleString()}`;
@@ -47,8 +48,17 @@ export default async function TokenDetailPage({
     notFound();
   }
 
-  const chainEntries = Object.entries(detail.currentChainTvls ?? {});
-  const totalTvl = chainEntries.reduce((sum, [, value]) => sum + value, 0);
+  const chainEntries: [string, number][] = Object.entries(
+    detail.currentChainTvls ?? {}
+  ).filter(
+    (entry): entry is [string, number] =>
+      typeof entry[1] === "number" && Number.isFinite(entry[1])
+  );
+
+  const totalTvl =
+    chainEntries.length > 0
+      ? chainEntries.reduce((sum, [, value]) => sum + value, 0)
+      : null;
 
   return (
     <div className="min-h-screen bg-[#0B0E14] text-white">
@@ -86,7 +96,7 @@ export default async function TokenDetailPage({
           Chain Distribution
         </h2>
         <div className="flex flex-col gap-2">
-          {chainEntries
+          {[...chainEntries]
             .sort((a, b) => b[1] - a[1])
             .map(([chain, tvl]) => (
               <div
